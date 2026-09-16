@@ -47,8 +47,27 @@ const modal=document.getElementById('modal'), mimg=document.getElementById('mimg
 const norm=s=>(s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function render(){const term=norm(q.value);const list=posters.filter(p=>!term||norm(p.id).includes(term)||norm(p.title).includes(term));count.textContent=`${list.length} ${list.length===1?'póster':'pósteres'}`;empty.style.display=list.length?'none':'block';grid.innerHTML=list.map(p=>`<article class="card">${p.image?`<div class="thumb" tabindex="0" data-id="${esc(p.id)}"><img loading="lazy" src="https://mcapdevila1.github.io/posteres/${encodeURIComponent(p.image)}" alt="Póster ${esc(p.id)}: ${esc(p.title)}"></div>`:`<div class="thumb"><div>Imagen no disponible</div></div>`}<div class="meta"><span class="id">ID ${esc(p.id)}</span><h2 class="title">${esc(p.title)}</h2></div></article>`).join('');grid.querySelectorAll('.thumb[data-id]').forEach(el=>{const op=()=>openPoster(el.dataset.id);el.addEventListener('click',op);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op();}})})}
-function openPoster(id){const p=posters.find(x=>x.id===id);if(!p||!p.image)return;mimg.classList.remove('zoom');mimg.src='https://mcapdevila1.github.io/posteres/'+encodeURIComponent(p.image);mimg.alt=`Póster ${p.id}: ${p.title}`;mtitle.textContent=`ID ${p.id} · ${p.title}`;modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';viewer.scrollTop=viewer.scrollLeft=0}
-async function closePoster(){if(document.fullscreenElement){try{await document.exitFullscreen()}catch(e){}}modal.classList.remove('open');modal.setAttribute('aria-hidden','true');mimg.src='';document.body.style.overflow=''}
+async function openPoster(id){
+  const p=posters.find(x=>x.id===id);
+  if(!p||!p.image)return;
+
+  mimg.classList.remove('zoom');
+  mimg.src='https://mcapdevila1.github.io/posteres/'+encodeURIComponent(p.image);
+  mimg.alt=`Póster ${p.id}: ${p.title}`;
+  mtitle.textContent=`ID ${p.id} · ${p.title}`;
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  viewer.scrollTop=viewer.scrollLeft=0;
+
+  try{
+    if(!document.fullscreenElement){
+      await modal.requestFullscreen();
+    }
+  }catch(e){}
+}
+  async function closePoster(){if(document.fullscreenElement){try{await document.exitFullscreen()}catch(e){}}modal.classList.remove('open');modal.setAttribute('aria-hidden','true');mimg.src='';document.body.style.overflow=''}
 q.addEventListener('input',render);close.addEventListener('click',closePoster);modal.addEventListener('click',e=>{if(e.target===modal)closePoster()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open')&&!document.fullscreenElement)closePoster()});mimg.addEventListener('click',()=>{mimg.classList.toggle('zoom');viewer.scrollTop=viewer.scrollLeft=0});fs.addEventListener('click',async()=>{try{if(!document.fullscreenElement)await modal.requestFullscreen();else await document.exitFullscreen()}catch(e){}});render();
 </script>
 </body></html>
