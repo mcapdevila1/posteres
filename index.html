@@ -54,12 +54,21 @@ function openPoster(id){
   const imageUrl=
     'https://mcapdevila1.github.io/posteres/'+encodeURIComponent(p.image);
 
-  const w=window.open('', '_blank');
+  const width=screen.availWidth;
+  const height=screen.availHeight;
+
+  const w=window.open(
+    '',
+    'posterViewer',
+    `popup=yes,width=${width},height=${height},left=0,top=0,resizable=yes,scrollbars=no`
+  );
 
   if(!w)return;
 
-  w.document.open();
+  w.moveTo(0,0);
+  w.resizeTo(width,height);
 
+  w.document.open();
   w.document.write(`
 <!doctype html>
 <html lang="es">
@@ -70,9 +79,7 @@ function openPoster(id){
 <title>ID ${p.id}</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 html,body{
   margin:0;
@@ -83,46 +90,43 @@ html,body{
   font-family:Arial,Helvetica,sans-serif;
 }
 
-.poster-page{
+.viewer{
   width:100vw;
   height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-.poster-header{
-  height:54px;
-  flex:0 0 54px;
+.top{
+  height:52px;
+  flex:0 0 52px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:20px;
-  padding:7px 16px;
-  color:#fff;
-  background:#061923;
+  padding:6px 15px;
+  color:white;
 }
 
-.poster-title{
+.title{
   font-size:14px;
   font-weight:600;
   overflow:hidden;
-  white-space:nowrap;
   text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
-.poster-close{
-  flex:0 0 auto;
+.close{
   border:0;
-  background:#fff;
+  background:white;
   color:#173042;
-  font-size:15px;
-  font-weight:700;
-  padding:9px 17px;
   border-radius:8px;
+  padding:9px 18px;
+  font-weight:700;
   cursor:pointer;
 }
 
-.poster-view{
+.stage{
   flex:1;
   min-height:0;
   display:flex;
@@ -132,55 +136,46 @@ html,body{
   padding:8px;
 }
 
-.poster-view img{
+.stage img{
   display:block;
   max-width:100%;
   max-height:100%;
   width:auto;
   height:auto;
   object-fit:contain;
-  background:#fff;
-  cursor:zoom-in;
+  background:white;
   box-shadow:0 10px 40px rgba(0,0,0,.45);
+  cursor:zoom-in;
 }
 
-.poster-view img.zoom{
+.stage img.zoom{
   max-width:none;
   max-height:none;
-  width:auto;
-  height:auto;
   cursor:zoom-out;
-  margin:auto;
 }
 </style>
 </head>
 
 <body>
 
-<div class="poster-page">
+<div class="viewer">
 
-  <div class="poster-header">
-
-    <div class="poster-title">
+  <div class="top">
+    <div class="title">
       ID ${p.id} · ${esc(p.title)}
     </div>
 
-    <button
-      class="poster-close"
-      onclick="window.close()">
+    <button class="close" onclick="window.close()">
       Cerrar
     </button>
-
   </div>
 
-  <div class="poster-view">
-
+  <div class="stage">
     <img
       src="${imageUrl}"
       alt="Póster ID ${p.id}"
       onclick="this.classList.toggle('zoom')"
     >
-
   </div>
 
 </div>
