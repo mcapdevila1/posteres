@@ -47,25 +47,149 @@ const modal=document.getElementById('modal'), mimg=document.getElementById('mimg
 const norm=s=>(s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function render(){const term=norm(q.value);const list=posters.filter(p=>!term||norm(p.id).includes(term)||norm(p.title).includes(term));count.textContent=`${list.length} ${list.length===1?'póster':'pósteres'}`;empty.style.display=list.length?'none':'block';grid.innerHTML=list.map(p=>`<article class="card">${p.image?`<div class="thumb" tabindex="0" data-id="${esc(p.id)}"><img loading="lazy" src="https://mcapdevila1.github.io/posteres/${encodeURIComponent(p.image)}" alt="Póster ${esc(p.id)}: ${esc(p.title)}"></div>`:`<div class="thumb"><div>Imagen no disponible</div></div>`}<div class="meta"><span class="id">ID ${esc(p.id)}</span><h2 class="title">${esc(p.title)}</h2></div></article>`).join('');grid.querySelectorAll('.thumb[data-id]').forEach(el=>{const op=()=>openPoster(el.dataset.id);el.addEventListener('click',op);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op();}})})}
-async function openPoster(id){
+function openPoster(id){
   const p=posters.find(x=>x.id===id);
   if(!p||!p.image)return;
 
-  mimg.classList.remove('zoom');
-  mimg.src='https://mcapdevila1.github.io/posteres/'+encodeURIComponent(p.image);
-  mimg.alt=`Póster ${p.id}: ${p.title}`;
-  mtitle.textContent=`ID ${p.id} · ${p.title}`;
+  const imageUrl=
+    'https://mcapdevila1.github.io/posteres/'+encodeURIComponent(p.image);
 
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
-  viewer.scrollTop=viewer.scrollLeft=0;
+  const w=window.open('', '_blank');
 
-  try{
-    if(!document.fullscreenElement){
-      await modal.requestFullscreen();
-    }
-  }catch(e){}
+  if(!w)return;
+
+  w.document.open();
+
+  w.document.write(`
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>ID ${p.id}</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#061923;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.poster-page{
+  width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+.poster-header{
+  height:54px;
+  flex:0 0 54px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:7px 16px;
+  color:#fff;
+  background:#061923;
+}
+
+.poster-title{
+  font-size:14px;
+  font-weight:600;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.poster-close{
+  flex:0 0 auto;
+  border:0;
+  background:#fff;
+  color:#173042;
+  font-size:15px;
+  font-weight:700;
+  padding:9px 17px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.poster-view{
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+  padding:8px;
+}
+
+.poster-view img{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  background:#fff;
+  cursor:zoom-in;
+  box-shadow:0 10px 40px rgba(0,0,0,.45);
+}
+
+.poster-view img.zoom{
+  max-width:none;
+  max-height:none;
+  width:auto;
+  height:auto;
+  cursor:zoom-out;
+  margin:auto;
+}
+</style>
+</head>
+
+<body>
+
+<div class="poster-page">
+
+  <div class="poster-header">
+
+    <div class="poster-title">
+      ID ${p.id} · ${esc(p.title)}
+    </div>
+
+    <button
+      class="poster-close"
+      onclick="window.close()">
+      Cerrar
+    </button>
+
+  </div>
+
+  <div class="poster-view">
+
+    <img
+      src="${imageUrl}"
+      alt="Póster ID ${p.id}"
+      onclick="this.classList.toggle('zoom')"
+    >
+
+  </div>
+
+</div>
+
+</body>
+</html>
+  `);
+
+  w.document.close();
 }
   async function closePoster(){if(document.fullscreenElement){try{await document.exitFullscreen()}catch(e){}}modal.classList.remove('open');modal.setAttribute('aria-hidden','true');mimg.src='';document.body.style.overflow=''}
 q.addEventListener('input',render);close.addEventListener('click',closePoster);modal.addEventListener('click',e=>{if(e.target===modal)closePoster()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open')&&!document.fullscreenElement)closePoster()});mimg.addEventListener('click',()=>{mimg.classList.toggle('zoom');viewer.scrollTop=viewer.scrollLeft=0});fs.addEventListener('click',async()=>{try{if(!document.fullscreenElement)await modal.requestFullscreen();else await document.exitFullscreen()}catch(e){}});render();
